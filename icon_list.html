@@ -1,10 +1,27 @@
 {% extends "base.html" %}
 
+{% block css %}
+.icons div {
+    border : 1px solid #ddd;
+    float : left;
+    margin : 20px;
+    text-align : center;
+    color : #222;
+}
+h1 a {
+    text-decoration : none;
+    color : black;
+}
+{% endblock %}
+
 {% block content %}
-<h1>Icons for {{set}}</h1>
-<ul>
+<h1><a href="/"><span class="std">std</span>icon<span class="std">s</a> for {{set}}</h1>
+<div class="icons">
 {% for icon in icons %}
-    <li><img src="/{{icon.set.name}}/{{icon.mimetype}}" /> {{ icon.mimetype }}</li>
+    <div>
+       <img src="/{{icon.set.name}}/{{icon.mimetype}}" />
+       <br/> {{ icon.mimetype }}
+    </div>
 {% endfor %}
-</ul>
+</div>
 {% endblock %}

@@ -2,13 +2,13 @@
 
 {% block content %}
 <h1>Sets</h1>
+<form method="POST">
+    New : <input name="setname"/>
+    <input type="submit" value="Create Set"/>
+</form>
 <ul>
 {% for set in sets %}
     <li><a href="/create/{{set.name}}">{{ set.name }}</a></li>
 {% endfor %}
 </ul>
-<form method="POST">
-    New : <input name="setname"/>
-    <input type="submit" value="Create Set"/>
-</form>
 {% endblock content %}
