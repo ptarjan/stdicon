@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Icons for {{set}}</h1>
+<ul>
+{% for icon in icons %}
+    <li><img src="/{{icon.set.name}}/{{icon.mimetype}}" /> {{ icon.mimetype }}</li>
+{% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block css %}
+#blurb {
+    border : 1px solid #ddd;
+    padding : 20px;
+    background : #eff6ff;
+}
+.header h1 {
+    text-align : center;
+}
+{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Open Icons</h1>
+</div>
+<div>
+    <div id="blurb">
+        If you've ever had a need for filetype icons, just hotlink ours. You can use a file extention like <code><img src="/html?size=16">/html</code>, a <a href="http://en.wikipedia.org/wiki/MIME">mimetype</a> like <code><img src="/application/pdf?size=16">/application/pdf</code> and/or choose from a specific set like <code><img src="/silk/html">/silk/html</code> or even combine them like <code><img src="/silk/image/png">/silk/image/png</code>. You can also use the <code><img src="/html?size=16">?size=16</code> to get a consistent size of icons, and the <code><img src="/bogus.icon?default=http%3a%2f%2fmetaward.com%2ffavicon.ico" /> ?default=http%3a%2f%2fmetaward.com%2ffavicon.ico</code> to force a default instead of an HTTP 404.
+    </div>
+    <h2>Quick Examples</h2>
+    <ul><li>
+    <a href="html"><img src="/html" height="16" />/html</a>
+    </li><li>
+    <a href="/gnome/html"><img src="/gnome/html" height="16" />/gnome/html</a>
+    </li><li>
+    <a href="/gnome/text/html"><img src="/gnome/text/html" height="16" />/gnome/text/html</a>
+    </li><li>
+    <a href="/gnome/text/html?size=16"><img src="/gnome/text/html?size=16" height="16" />/gnome/text/html?size=16</a>
+    </li></ul>
+
+    <h1>Sets</h1>
+    <ul>
+    {% for set in sets %}
+        <li><a href="/{{set.name}}/">{{ set.name }}</a></li>
+    {% endfor %}
+    </ul>
+</div>
+{% endblock %}
