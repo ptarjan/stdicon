@@ -4,13 +4,5 @@ runtime: python
 api_version: 1
 
 handlers:
-- url: /appengine_admin_media
-  static_dir: appengine_admin/media
-  secure: never
-
-#- url: /examples
-#  static_dir: examples
-#  mime_type: text/plain
-
 - url: .*
   script: main.py
