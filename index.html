@@ -9,7 +9,7 @@
 .header h1 {
     text-align : center;
 }
-#examples, #sets, #mimetypes {
+#examples, #sets, #mimetypes, #footer {
     border : 1px solid #ddd;
     padding : 20px;
     margin : 10px 0px;
@@ -23,6 +23,13 @@
 }
 #mimetypes {
     background : #effff6;
+}
+#footer {
+    background : #f6efff;
+}
+a {
+    color : #3030FF;
+    text-decoration : none;
 }
 {% endblock %}
 
@@ -63,6 +70,10 @@
         <p>File extension to mimetype lookup like <a href="/ext/html">/ext/html</a> or <a href="/ext/mp3">/ext/mp3</a>
         <p>Mimetype fo file extension like <a href="/mimetype/application/postscript">/mimetype/application/postscript</a> or <a href="/mimetype/application/zip">/mimetype/application/zip</a>
         <p>Or the whole dump in <a href="/mimetypes">json</a> or <a href="/mimetypes?format=xml">xml</a> (from <a href="http://docs.python.org/library/mimetypes.html">python mimetypes</a> and <a href="http://www.home.unix-ag.org/bmeurer/files/dotfiles/dot.mime.types">apache</a>)
+    </div>
+    
+    <div id="footer">
+        by <a href="http://paulisageek.com">Paul Tarjan</a> and <a href="http://progrium.com/">Jeff Lindsay</a>. <a href="http://github.com/ptarjan/stdicon/tree/master">Open Source</a>.
     </div>
 </div>
 {% endblock %}
