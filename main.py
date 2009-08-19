@@ -3,6 +3,7 @@
 import os
 import mimetypes
 import logging
+from urllib import unquote
 
 import wsgiref.handlers
 
@@ -71,14 +72,17 @@ class IconHandler(webapp.RequestHandler):
                 self.response.set_status(404)
                 self.response.out.write("Default image error: %s : %s" % (default, why))
 
-    def get(self):
+    def get(self, default_set="crystal"):
         image = memcache.get("image_" + self.request.url)
         if image : 
             return self.respond_image(image)
 
-        parts = self.request.path.split("/")[1:]
+        # path is urlencoded with + being %2B
+        path = unquote(self.request.path)
+
+        parts = path.split("/")[1:]
         if len(parts) == 1 :
-            setname = "gnome"
+            setname = default_set
             mimetype = parts[0]
         else :
             setname = parts[0]
@@ -91,7 +95,7 @@ class IconHandler(webapp.RequestHandler):
 
         set = Set.all().filter("name = ", setname).get()
         if not set :
-            setname = "gnome"
+            setname = default_set
             set = Set.all().filter("name = ", setname).get()
             mimetype = "/".join(parts)
 
