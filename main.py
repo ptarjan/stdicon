@@ -74,7 +74,7 @@ class SetHandler(webapp.RequestHandler):
             return False
             
         template_values = {}
-        template_values['set'] = set.name
+        template_values['set'] = set
         template_values['icons'] = Icon.all().filter("set =", set).order("mimetype")
 
         path = os.path.join(os.path.dirname(__file__), 'icon_list.html')
@@ -288,15 +288,36 @@ class MimetypeLookupHandler(webapp.RequestHandler):
             else :
                 self.response.set_status(404)
                 self.response.out.write("Mimetype '%s' has no known extension" % (type))
-            
+           
+class FixHandler(webapp.RequestHandler):
+    def get(self) :
+        set = Set.all().filter("name =", "crystal").get()
+        set.url = "http://www.everaldo.com/crystal/"
+        set.put()
+        set = Set.all().filter("name =", "silk").get()
+        set.url = "http://www.famfamfam.com/lab/icons/silk/"
+        set.put()
+        set = Set.all().filter("name =", "tango").get()
+        set.url = "http://tango.freedesktop.org/Tango_Icon_Library"
+        set.put()
+        set = Set.all().filter("name =", "gnome").get()
+        set.url = "http://art.gnome.org/themes/icon/1100"
+        set.put()
+        set = Set.all().filter("name =", "apache").get()
+        set.url = "http://httpd.apache.org/"
+        set.put()
             
 def main():
   application = webapp.WSGIApplication([
                                         (r'/', IndexHandler),
                                         (r'/favicon.ico', FaviconHandler),
                                         (r'/(.+)/', SetHandler),
+
+                                        # admin
                                         (r'/create/?', CreateHandler),
                                         (r'/create/(.+)', CreateIconHandler),
+                                        (r'/fix', FixHandler),
+
                                         (r'/mimetypes', MimetypesHandler),
                                         (r'/(ext|mimetype)/(.+)', MimetypeLookupHandler),
                                         (r'/.+', IconHandler),
