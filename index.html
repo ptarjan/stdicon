@@ -9,17 +9,20 @@
 .header h1 {
     text-align : center;
 }
-#examples {
+#examples, #sets, #mimetypes {
     border : 1px solid #ddd;
     padding : 20px;
     margin : 10px 0px;
+}
+
+#examples {
     background : #fff6ef;
 }
 #sets {
-    border : 1px solid #ddd;
-    padding : 20px;
-    margin : 10px 0px;
     background : #f6ffef;
+}
+#mimetypes {
+    background : #effff6;
 }
 {% endblock %}
 
@@ -53,6 +56,13 @@
             <li><a href="/{{set.name}}/">{{ set.name }}</a></li>
         {% endfor %}
         </ul>
+    </div>
+    
+    <div id="mimetypes">
+        <h2>Mimetypes</h2>
+        <p>File extension to mimetype lookup like <a href="/ext/html">/ext/html</a> or <a href="/ext/m4a">/ext/m4a</a>
+        <p>Mimetype fo file extension like <a href="/mimetype/application/postscript">/mimetype/application/postscript</a> or <a href="/mimetype/application/zip">/mimetype/application/zip</a>
+        <p>Or the whole dump in <a href="/mimetypes">json</a> or <a href="/mimetypes?format=xml">xml</a> (from <a href="http://docs.python.org/library/mimetypes.html">python mimetypes</a> and <a href="http://www.home.unix-ag.org/bmeurer/files/dotfiles/dot.mime.types">apache</a>)
     </div>
 </div>
 {% endblock %}

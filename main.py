@@ -3,6 +3,7 @@
 import os
 import mimetypes
 import logging
+import simplejson
 from urllib import unquote
 
 import wsgiref.handlers
@@ -17,6 +18,10 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
 from datetime import timedelta, datetime
+
+mimetypes.knownfiles.append("mime.types")
+mimetypes.init(mimetypes.knownfiles)
+
 
 class Set(db.Model):
     name = db.StringProperty(required=True)
@@ -88,16 +93,16 @@ class IconHandler(webapp.RequestHandler):
             setname = parts[0]
             mimetype = "/".join(parts[1:])
 
-        guess, encoding = mimetypes.guess_type("dummy." + mimetype)
-        if guess :
-            logging.info("Guessed '%s' for '%s'" % (guess, mimetype))
-            mimetype = guess
-
         set = Set.all().filter("name = ", setname).get()
         if not set :
             setname = default_set
             set = Set.all().filter("name = ", setname).get()
             mimetype = "/".join(parts)
+
+        guess, encoding = mimetypes.guess_type("dummy." + mimetype)
+        if guess :
+            logging.info("Guessed '%s' for '%s'" % (guess, mimetype))
+            mimetype = guess
 
         icon = Icon.all().filter("set =", set).filter("mimetype =", mimetype).get()
         if not icon :
@@ -214,13 +219,53 @@ class CreateIconHandler(webapp.RequestHandler):
 
         return self.get(setname)
 
+class MimetypesHandler(webapp.RequestHandler):
+    def get(self) :
+        keys = mimetypes.types_map.keys()
+        keys.sort()
+        map = []
+        for k in keys :
+            map.append({k: mimetypes.types_map[k]})
+        if self.request.get("format") != "xml" :
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(simplejson.dumps(map))
+        else :
+            self.response.headers['Content-Type'] = 'application/xml'
+            o = self.response.out
+            o.write("<mimetypes>")
+            for f in map :
+                k = f.keys()[0]
+                v = f[k]
+                o.write("<file><ext>%s</ext><mimetype>%s</mimetype></file>" % (k,v))
+            o.write("</mimetypes>")
+
+class MimetypeLookupHandler(webapp.RequestHandler):
+    def get(self, method, type) :
+        if method == "ext" :
+            guess, handler = mimetypes.guess_type("dummy." + type)
+            if guess :
+                self.response.out.write(guess)
+            else :
+                self.response.set_status(404)
+                self.response.out.write("Extension '%s' has no known mimetype" % (type))
+        elif method == "mimetype" :
+            ext = mimetypes.guess_extension(type)
+            if ext and ext[0] == "." :
+                self.response.out.write(ext[1:])
+            else :
+                self.response.set_status(404)
+                self.response.out.write("Mimetype '%s' has no known extension" % (type))
+            
+            
 def main():
   application = webapp.WSGIApplication([
                                         (r'/', IndexHandler),
                                         (r'/favicon.ico', FaviconHandler),
                                         (r'/(.+)/', SetHandler),
-                                        (r'/create', CreateHandler),
+                                        (r'/create/?', CreateHandler),
                                         (r'/create/(.+)', CreateIconHandler),
+                                        (r'/mimetypes', MimetypesHandler),
+                                        (r'/(ext|mimetype)/(.+)', MimetypeLookupHandler),
                                         (r'/.+', IconHandler),
                                        ],
                                        debug=True)
