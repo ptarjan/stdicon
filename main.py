@@ -97,7 +97,13 @@ class IconHandler(webapp.RequestHandler):
 
         icon = Icon.all().filter("set =", set).filter("mimetype =", mimetype).get()
         if not icon :
-            return self.error(404, "Icon '%s' not found in '%s' set" % (mimetype, setname))
+            parts = mimetype.split("/")
+            if len(parts) >= 1 :
+                generic_mimetype = parts[0] + "/x-generic"
+                icon = Icon.all().filter("set =", set).filter("mimetype =", generic_mimetype).get()
+
+            if not icon :
+                return self.error(404, "Icon '%s' not found in '%s' set" % (mimetype, setname))
 
         if not icon.contents :
             return self.error(500, "'%s' from '%s' has 0 bytes" % (mimetype, setname))
