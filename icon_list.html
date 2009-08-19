@@ -18,7 +18,10 @@ h1 a {
 {% endblock %}
 
 {% block content %}
-<h1><a href="/"><span class="std">std</span>icon<span class="std">s</a> for {{set}}</h1>
+<h1><a href="/"><span class="std">std</span>icon<span class="std">s</a> for 
+{% if set.url %}<a href="{{ set.url }}">{{ set }}</a>
+{% else %}{{ set }}
+{% endif %}</h1>
 <div class="icons">
 {% for icon in icons %}
     <div>

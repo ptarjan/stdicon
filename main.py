@@ -4,6 +4,7 @@ import os
 import mimetypes
 import logging
 import simplejson
+import random
 from urllib import unquote
 
 import wsgiref.handlers
@@ -25,6 +26,7 @@ mimetypes.init(mimetypes.knownfiles)
 
 class Set(db.Model):
     name = db.StringProperty(required=True)
+    url = db.LinkProperty()
     modified = db.DateTimeProperty(auto_now=True)
     created = db.DateTimeProperty(auto_now_add=True)
     
@@ -38,7 +40,27 @@ class Icon(db.Model):
 class IndexHandler(webapp.RequestHandler):
     def get(self):
         template_values = {}
-        template_values['sets'] = Set.all().order("name")
+        sets = Set.all().order("name")
+
+        iconsets = []
+        for set in sets :
+            cached = memcache.get("iconexample_set_" + set.name)
+            if cached : 
+                iconset = cached
+            else :
+                query = Icon.all().filter("set = ", set)
+                max = query.count()
+                if max == 0 :
+                    icon = None
+                else :  
+                    ind = int(random.random() * max)
+                    icon = query[ind]
+                iconset ={"set" : set, "icon" : icon}
+                memcache.set("iconexample_set_" + set.name, iconset, 60 * 60 * 24) # 1 day
+
+            iconsets.append(iconset)
+
+        template_values['sets'] = iconsets
 
         path = os.path.join(os.path.dirname(__file__), 'index.html')
         self.response.out.write(template.render(path, template_values))
@@ -182,8 +204,9 @@ class CreateHandler(webapp.RequestHandler):
             return self.redirect("/")
 
         setname = self.request.get("setname")
+        url = self.request.get("url")
         if setname :
-            Set(name=setname).put()
+            Set(name=setname, url=url).put()
 
         return self.get()
 
@@ -210,12 +233,22 @@ class CreateIconHandler(webapp.RequestHandler):
             return self.redirect("/")
 
         mimetype = self.request.get("mimetype")
+        guess, encoding = mimetypes.guess_type("dummy." + mimetype)
+        if guess :
+            logging.info("Guessed '%s' for '%s'" % (guess, mimetype))
+            mimetype = guess
+
         setname = self.request.get("set")
         contents = self.request.get("contents")
-        if mimetype and set and contents :
-            icon = Icon(mimetype=mimetype, set=Set.all().filter("name =", setname).get())
-            icon.contents = contents
-            icon.put()
+        if mimetype and setname and contents :
+            set = Set.all().filter("name =", setname).get()
+
+            # don't post duplicates
+            icon = Icon.all().filter("set =", set).filter("mimetype =", mimetype).get()
+            if not icon :
+                icon = Icon(mimetype=mimetype, set=set)
+                icon.contents = contents
+                icon.put()
 
         return self.get(setname)
 
