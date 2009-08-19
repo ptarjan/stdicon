@@ -11,7 +11,7 @@
     text-align : center;
     color : #222;
 }
-h1 a {
+a {
     text-decoration : none;
     color : black;
 }
@@ -25,8 +25,10 @@ h1 a {
 <div class="icons">
 {% for icon in icons %}
     <div>
-       <img src="/{{icon.set.name}}/{{icon.mimetype}}" />
-       <br/> {{ icon.mimetype }}
+        <a href="/{{icon.set.name}}/{{icon.mimetype}}">
+            <img src="/{{icon.set.name}}/{{icon.mimetype}}" />
+            <br/> {{ icon.mimetype }}
+        </a>
     </div>
 {% endfor %}
 </div>
