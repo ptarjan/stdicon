@@ -21,8 +21,10 @@ from google.appengine.ext.webapp import template
 from datetime import timedelta, datetime
 
 mimetypes.knownfiles.append("mime.types")
+# load the mimetypes from the file (this is cached between requests)
 mimetypes.init(mimetypes.knownfiles)
 
+template.register_template_library('filters')
 
 class Set(db.Model):
     name = db.StringProperty(required=True)
@@ -56,7 +58,8 @@ class IndexHandler(webapp.RequestHandler):
                     ind = int(random.random() * max)
                     icon = query[ind]
                 iconset ={"set" : set, "icon" : icon}
-                memcache.set("iconexample_set_" + set.name, iconset, 60 * 60 * 24) # 1 day
+                if icon :
+                    memcache.set("iconexample_set_" + set.name, iconset, 60 * 60 * 24) # 1 day
 
             iconsets.append(iconset)
 
@@ -254,7 +257,7 @@ class CreateIconHandler(webapp.RequestHandler):
             return False
             
         template_values = {}
-        template_values['set'] = set.name
+        template_values['set'] = set
         template_values['icons'] = Icon.all().filter("set =", set).order("mimetype")
 
         path = os.path.join(os.path.dirname(__file__), 'create_icon.html')
@@ -265,6 +268,7 @@ class CreateIconHandler(webapp.RequestHandler):
             return self.redirect("/")
 
         mimetype = self.request.get("mimetype")
+        mimetype = mimetype.strip()
         guess, encoding = mimetypes.guess_type("dummy." + mimetype)
         if guess :
             logging.info("Guessed '%s' for '%s'" % (guess, mimetype))
@@ -348,7 +352,7 @@ def main():
 
                                         # admin
                                         (r'/create/?', CreateHandler),
-                                        (r'/create/(.+)', CreateIconHandler),
+                                        (r'/create/(.+)/?', CreateIconHandler),
                                         (r'/fix', FixHandler),
 
                                         (r'/mimetypes', MimetypesHandler),
