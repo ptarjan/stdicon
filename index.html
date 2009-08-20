@@ -63,7 +63,7 @@ a:hover {
         <h2>Sets</h2>
         <ul>
         {% for iconset in sets %}
-            <li><img src="/{{ iconset.set.name }}/{{ iconset.icon.mimetype }}?size=16" /> <a href="/{{ iconset.set.name }}/">{{ iconset.set.name }}</a></li>
+            <li><a href="/{{ iconset.set.name }}/"><img src="/{{ iconset.set.name }}/{{ iconset.icon.mimetype }}?size=16" /> {{ iconset.set.name }}</a></li>
         {% endfor %}
         </ul>
     </div>
