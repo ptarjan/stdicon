@@ -2,7 +2,7 @@
 
 {% block content %}
 <form method="POST" enctype="multipart/form-data">
-    <input type="hidden" name="set" value="{{ set }}" />
+    <input type="hidden" name="set" value="{{ set.name }}" />
     <label for="mimetype"><a href="/mimetypes">Mimetype</a>:</label> <input id="mimetype" name="mimetype"/>
     <label for="contents">File:</label> <input type="file" id="contents" name="contents"/>
     <input type="submit" value="Create Icon"/>
