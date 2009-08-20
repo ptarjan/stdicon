@@ -67,7 +67,12 @@ class IndexHandler(webapp.RequestHandler):
 
 class SetHandler(webapp.RequestHandler):
     def get(self, setname):
-        set = Set.all().filter("name =", setname).get()
+        try :
+            set = Set.all().filter("name =", setname).get()
+        except Exception, why :
+            logging.error(why)
+            set = None
+
         if not set :
             self.response.set_status(404)
             self.response.out.write("Set '%s' not found" % (setname))
@@ -92,7 +97,11 @@ class IconHandler(webapp.RequestHandler):
                 # image = memcache.get("default_image_" + default)
                 if not image :
                     image = urlfetch.fetch(default).content
-                    memcache.set("default_image_" + default, image, 60 * 60) # 1 hour
+                    try :
+                        memcache.set("default_image_" + default, image, 60 * 60) # 1 hour
+                    except Exception, why :
+                        logging.error(why)
+
                 return self.image(image, cache=False)
 
             except urlfetch.Error, why :
@@ -115,7 +124,12 @@ class IconHandler(webapp.RequestHandler):
             setname = parts[0]
             mimetype = "/".join(parts[1:])
 
-        set = Set.all().filter("name = ", setname).get()
+        try :
+            set = Set.all().filter("name =", setname).get()
+        except Exception, why :
+            logging.error(why)
+            set = None
+
         if not set :
             setname = default_set
             set = Set.all().filter("name = ", setname).get()
@@ -126,12 +140,20 @@ class IconHandler(webapp.RequestHandler):
             logging.info("Guessed '%s' for '%s'" % (guess, mimetype))
             mimetype = guess
 
-        icon = Icon.all().filter("set =", set).filter("mimetype =", mimetype).get()
+        try :
+            icon = Icon.all().filter("set =", set).filter("mimetype =", mimetype).get()
+        except Exception, why :
+            logging.error(why)
+            icon = None
+
         if not icon :
             parts = mimetype.split("/")
             if len(parts) >= 1 :
                 generic_mimetype = parts[0] + "/x-generic"
-                icon = Icon.all().filter("set =", set).filter("mimetype =", generic_mimetype).get()
+                try :
+                    icon = Icon.all().filter("set =", set).filter("mimetype =", generic_mimetype).get()
+                except Exception, why :
+                    logging.error(why)
 
             if not icon :
                 return self.error(404, "Icon '%s' not found in '%s' set" % (mimetype, setname))
@@ -152,14 +174,20 @@ class IconHandler(webapp.RequestHandler):
             else :
                 h = boom[0]
                 w = boom[1]
+
+            w = min(int(w), 256)
+            h = min(int(h), 256)
             
             try :
-                image = images.resize(contents, int(w), int(h))
+                image = images.resize(contents, w, h)
             except ValueError, why :
                 image = contents
 
             if cache :
-                memcache.add("image_" + self.request.url, image)
+                try :
+                    memcache.set("image_" + self.request.url, image, 60 * 60 * 24) # 1 day
+                except Exception, why :
+                    logging.error(why)
 
         else :
             image = contents
@@ -274,7 +302,7 @@ class MimetypesHandler(webapp.RequestHandler):
 
 class MimetypeLookupHandler(webapp.RequestHandler):
     def get(self, method, type) :
-        if method == "ext" :
+        if method == "ext" or method == "extension" :
             guess, handler = mimetypes.guess_type("dummy." + type)
             if guess :
                 self.response.out.write(guess)
@@ -319,7 +347,7 @@ def main():
                                         (r'/fix', FixHandler),
 
                                         (r'/mimetypes', MimetypesHandler),
-                                        (r'/(ext|mimetype)/(.+)', MimetypeLookupHandler),
+                                        (r'/(ext|extension|mimetype)/(.+)', MimetypeLookupHandler),
                                         (r'/.+', IconHandler),
                                        ],
                                        debug=True)
