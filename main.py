@@ -74,6 +74,7 @@ class SetHandler(webapp.RequestHandler):
             set = None
 
         if not set :
+            self.response.headers['Content-Type'] = 'text/plain'
             self.response.set_status(404)
             self.response.out.write("Set '%s' not found" % (setname))
             return False
@@ -89,6 +90,7 @@ class IconHandler(webapp.RequestHandler):
     def error(self, status, msg="") :
         default = self.request.get("default")
         if not default :
+            self.response.headers['Content-Type'] = 'text/plain'
             self.response.set_status(status)
             self.response.out.write(msg)
         else :
@@ -105,6 +107,7 @@ class IconHandler(webapp.RequestHandler):
                 return self.image(image, cache=False)
 
             except urlfetch.Error, why :
+                self.response.headers['Content-Type'] = 'text/plain'
                 self.response.set_status(404)
                 self.response.out.write("Default image error: %s : %s" % (default, why))
 
@@ -245,6 +248,7 @@ class CreateIconHandler(webapp.RequestHandler):
 
         set = Set.all().filter("name =", setname).get()
         if not set :
+            self.response.headers['Content-Type'] = 'text/plain'
             self.response.set_status(404)
             self.response.out.write("Set '%s' not found" % (setname))
             return False
@@ -302,6 +306,7 @@ class MimetypesHandler(webapp.RequestHandler):
 
 class MimetypeLookupHandler(webapp.RequestHandler):
     def get(self, method, type) :
+        self.response.headers['Content-Type'] = 'text/plain'
         if method == "ext" or method == "extension" :
             guess, handler = mimetypes.guess_type("dummy." + type)
             if guess :
