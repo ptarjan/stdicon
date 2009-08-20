@@ -348,7 +348,6 @@ def main():
   application = webapp.WSGIApplication([
                                         (r'/', IndexHandler),
                                         (r'/favicon.ico', FaviconHandler),
-                                        (r'/(.+)/', SetHandler),
 
                                         # admin
                                         (r'/create/?', CreateHandler),
@@ -357,6 +356,7 @@ def main():
 
                                         (r'/mimetypes', MimetypesHandler),
                                         (r'/(ext|extension|mimetype)/(.+)', MimetypeLookupHandler),
+                                        (r'/(.+)/', SetHandler),
                                         (r'/.+', IconHandler),
                                        ],
                                        debug=True)
