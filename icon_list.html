@@ -19,7 +19,7 @@ a {
 
 {% block content %}
 <h1><a href="/"><span class="std">std</span>icon<span class="std">s</a> for 
-{% if set.url %}<a href="{{ set.url }}">{{ set.name }}</a>
+{% if set.url %}<a class="external" href="{{ set.url }}">{{ set.name }}</a>
 {% else %}{{ set.name }}
 {% endif %}</h1>
 <div class="icons">
