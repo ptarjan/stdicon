@@ -310,21 +310,31 @@ class MimetypesHandler(webapp.RequestHandler):
 
 class MimetypeLookupHandler(webapp.RequestHandler):
     def get(self, method, type) :
-        self.response.headers['Content-Type'] = 'text/plain'
+        output = ""
         if method == "ext" or method == "extension" :
             guess, handler = mimetypes.guess_type("dummy." + type)
             if guess :
-                self.response.out.write(guess)
+                output = guess
             else :
                 self.response.set_status(404)
-                self.response.out.write("Extension '%s' has no known mimetype" % (type))
+                output = "Extension '%s' has no known mimetype" % (type)
         elif method == "mimetype" :
             ext = mimetypes.guess_extension(type)
             if ext and ext[0] == "." :
-                self.response.out.write(ext[1:])
+                output = ext[1:]
             else :
                 self.response.set_status(404)
-                self.response.out.write("Mimetype '%s' has no known extension" % (type))
+                output = "Mimetype '%s' has no known extension" % (type)
+
+        self.response.headers['Content-Type'] = 'text/plain'
+        if self.request.get("callback") :
+            self.response.headers['Content-Type'] = 'application/javascript'
+            self.response.out.write(self.request.get("callback") + "(" + simplejson.dumps(output) + ")")
+        else :
+            self.response.headers['Content-Type'] = 'text/plain'
+            self.response.out.write(output)
+            
+
            
 class FixHandler(webapp.RequestHandler):
     def get(self) :
