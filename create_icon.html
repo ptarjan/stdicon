@@ -7,5 +7,13 @@
     <label for="contents">File:</label> <input type="file" id="contents" name="contents"/>
     <input type="submit" value="Create Icon"/>
 </form>
+
+OR 
+
+<form method="POST" enctype="multipart/form-data" action="/create/{{ set.name }}/zip">
+    <input type="hidden" name="set" value="{{ set.name }}" />
+    <label for="contents">Zip File (named by <a href="http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html">Icon Naming Spec</a>) :</label> <input type="file" id="contents" name="contents"/>
+    <input type="submit" value="Create Icon(s)"/>
+</form>
 {{ block.super }}
 {% endblock content %}

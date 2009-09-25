@@ -22,6 +22,7 @@ from datetime import timedelta, datetime
 
 mimetypes.knownfiles.append("mime.types")
 # load the mimetypes from the file (this is cached between requests)
+mimetypes.add_type("text/plain", ".txt")
 mimetypes.init(mimetypes.knownfiles)
 
 template.register_template_library('filters')
@@ -38,6 +39,28 @@ class Icon(db.Model):
     contents = db.BlobProperty()
     modified = db.DateTimeProperty(auto_now=True)
     created = db.DateTimeProperty(auto_now_add=True)
+   
+    @staticmethod
+    def create(mimetype, contents, setname) : 
+        logging.info(str((mimetype, setname)))
+        mimetype = mimetype.strip()
+        guess, encoding = mimetypes.guess_type("dummy." + mimetype)
+        if guess :
+            logging.info("Guessed '%s' for '%s'" % (guess, mimetype))
+            mimetype = guess
+
+        icon = None
+        if mimetype and setname and contents :
+            set = Set.all().filter("name =", setname).get()
+
+            # don't post duplicates
+            icon = Icon.all().filter("set =", set).filter("mimetype =", mimetype).get()
+            if not icon :
+                icon = Icon(mimetype=mimetype, set=set)
+                icon.contents = contents
+                icon.put()
+
+        return icon
 
 class IndexHandler(webapp.RequestHandler):
     def get(self):
@@ -266,27 +289,35 @@ class CreateIconHandler(webapp.RequestHandler):
     def post(self, setname) :
         if not users.is_current_user_admin() :
             return self.redirect("/")
-
+        
         mimetype = self.request.get("mimetype")
-        mimetype = mimetype.strip()
-        guess, encoding = mimetypes.guess_type("dummy." + mimetype)
-        if guess :
-            logging.info("Guessed '%s' for '%s'" % (guess, mimetype))
-            mimetype = guess
-
         setname = self.request.get("set")
         contents = self.request.get("contents")
-        if mimetype and setname and contents :
-            set = Set.all().filter("name =", setname).get()
-
-            # don't post duplicates
-            icon = Icon.all().filter("set =", set).filter("mimetype =", mimetype).get()
-            if not icon :
-                icon = Icon(mimetype=mimetype, set=set)
-                icon.contents = contents
-                icon.put()
+        icon = Icon.create(mimetype, contents, setname)
 
         return self.get(setname)
+
+class CreateIconZipHandler(webapp.RequestHandler):
+    def post(self, setname) :
+        if not users.is_current_user_admin() :
+            return self.redirect("/")
+
+        import zipfile
+        from StringIO import StringIO
+        import re
+        zip = zipfile.ZipFile(StringIO(self.request.get("contents")))
+        setname = self.request.get("set")
+
+        for name in zip.namelist() :
+            match = re.search("-mime-(.*?)[.]", name)
+            if not match : continue
+
+            mimetype = match.groups()[0].replace("-", "/")
+            contents = zip.read(name)
+            
+            icon = Icon.create(mimetype, contents, setname)
+
+        return self.redirect("/create/" + setname)
 
 class MimetypesHandler(webapp.RequestHandler):
     def get(self) :
@@ -361,6 +392,7 @@ def main():
 
                                         # admin
                                         (r'/create/?', CreateHandler),
+                                        (r'/create/(.+)/zip?', CreateIconZipHandler),
                                         (r'/create/(.+)/?', CreateIconHandler),
                                         (r'/fix', FixHandler),
 
