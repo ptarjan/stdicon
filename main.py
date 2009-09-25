@@ -53,12 +53,13 @@ class Icon(db.Model):
         if mimetype and setname and contents :
             set = Set.all().filter("name =", setname).get()
 
-            # don't post duplicates
+            # kill original on duplicate
             icon = Icon.all().filter("set =", set).filter("mimetype =", mimetype).get()
-            if not icon :
-                icon = Icon(mimetype=mimetype, set=set)
-                icon.contents = contents
-                icon.put()
+            if icon : icon.delete()
+
+            icon = Icon(mimetype=mimetype, set=set)
+            icon.contents = contents
+            icon.put()
 
         return icon
 
@@ -183,6 +184,13 @@ class IconHandler(webapp.RequestHandler):
                     icon = Icon.all().filter("set =", set).filter("mimetype =", generic_mimetype).get()
                 except Exception, why :
                     logging.error(why)
+                
+                if not icon :
+                    generic_mimetype = parts[0]
+                    try :
+                        icon = Icon.all().filter("set =", set).filter("mimetype =", generic_mimetype).get()
+                    except Exception, why :
+                        logging.error(why)
 
             if not icon :
                 return self.error(404, "Icon '%s' not found in '%s' set" % (mimetype, setname))
@@ -312,7 +320,8 @@ class CreateIconZipHandler(webapp.RequestHandler):
             match = re.search("-mime-(.*?)[.]", name)
             if not match : continue
 
-            mimetype = match.groups()[0].replace("-", "/")
+            mimetype = match.groups()[0].replace("-", "/", 1)
+            mimetype = mimetype.replace("x/directory-", "x-directory/") # i guess x-directory is a valid prefix for a mimetype
             contents = zip.read(name)
             
             icon = Icon.create(mimetype, contents, setname)
@@ -369,6 +378,13 @@ class MimetypeLookupHandler(webapp.RequestHandler):
            
 class FixHandler(webapp.RequestHandler):
     def get(self) :
+        user = users.get_current_user()
+        if not user :
+            return self.redirect(users.create_login_url(self.request.url))
+        if not users.is_current_user_admin() :
+            logging.warning("Non-admin found the fix url : %s", user)
+            return self.redirect("/")
+        '''
         set = Set.all().filter("name =", "crystal").get()
         set.url = "http://www.everaldo.com/crystal/"
         set.put()
@@ -384,6 +400,10 @@ class FixHandler(webapp.RequestHandler):
         set = Set.all().filter("name =", "apache").get()
         set.url = "http://httpd.apache.org/"
         set.put()
+        set = Set.all().filter("name =", "g-flat").get()
+        for icon in  Icon.all().filter("set =", set) :
+            icon.delete()
+        '''
             
 def main():
   application = webapp.WSGIApplication([
@@ -392,8 +412,8 @@ def main():
 
                                         # admin
                                         (r'/create/?', CreateHandler),
-                                        (r'/create/(.+)/zip?', CreateIconZipHandler),
-                                        (r'/create/(.+)/?', CreateIconHandler),
+                                        (r'/create/(.+?)/zip?', CreateIconZipHandler),
+                                        (r'/create/(.+?)/?', CreateIconHandler),
                                         (r'/fix', FixHandler),
 
                                         (r'/mimetypes', MimetypesHandler),
