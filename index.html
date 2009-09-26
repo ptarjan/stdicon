@@ -10,20 +10,34 @@
 .header h1 {
     text-align : center;
 }
+#body {
+    width : 800px;
+    margin : auto;
+}
 #examples, #sets, #mimetypes, #footer {
     border : 1px solid #ddd;
     padding : 20px;
     margin : 10px 0px;
 }
-
+#lists {
+    height : 100%;
+}
 #examples {
     background : #fff6ef;
+    float : left;
+    width : 506px;
+    height : 100%;
 }
 #sets {
-    background : #f6ffef;
+    background : #ffefef;
+    float : left;
+    margin-right : 10px;
+    height : 100%;
+    width : 200px;
 }
 #mimetypes {
     background : #effff6;
+    clear : both;
 }
 #footer {
     background : #f6efff;
@@ -41,10 +55,23 @@ a:hover {
 <div class="header">
     <h1><span class="std">std</span>icon</h1>
 </div>
-<div>
+<div id="body">
     <div id="blurb">
         If you've ever had a need for filetype icons, just hotlink ours. You can use a file extention like <code><img src="/html?size=16">/html</code>, a filename like <code><img src="/movie.avi?size=16" />/movie.avi</code>, a <a href="http://en.wikipedia.org/wiki/MIME">mimetype</a> like <code><img src="/application/pdf?size=16">/application/pdf</code> and/or choose from a specific set like <code><img src="/neu/html?size=16">/neu/html</code> or even combine them like <code><img src="/neu/image/png?size=16">/neu/image/png</code>. You can also use the <code><img src="/html?size=16">?size=16</code> to get a consistent size of icons, and the <code><img src="/bogus.icon?default=http%3a%2f%2fmetaward.com%2ffavicon.ico" /> ?default=http%3a%2f%2fmetaward.com%2ffavicon.ico</code> to force a default instead of an HTTP 404.
     </div>
+
+    <div id="lists">
+    
+    <div id="sets">
+        <h2>Sets</h2>
+        <ul>
+        {% for iconset in sets %}
+            <li><a href="/{{ iconset.set.name }}/"><img src="/{{ iconset.set.name }}/{{ iconset.icon.mimetype }}?size=16" /> {{ iconset.set.name }}</a></li>
+        {% endfor %}
+        </ul>
+    </div>
+
+    
     <div id="examples">
         <h2>Quick Examples</h2>
         <ul><li>
@@ -62,13 +89,6 @@ a:hover {
         </li></ul>
     </div>
 
-    <div id="sets">
-        <h2>Sets</h2>
-        <ul>
-        {% for iconset in sets %}
-            <li><a href="/{{ iconset.set.name }}/"><img src="/{{ iconset.set.name }}/{{ iconset.icon.mimetype }}?size=16" /> {{ iconset.set.name }}</a></li>
-        {% endfor %}
-        </ul>
     </div>
     
     <div id="mimetypes">
@@ -82,4 +102,20 @@ a:hover {
         by <a href="http://paulisageek.com">Paul Tarjan</a> and <a href="http://progrium.com/">Jeff Lindsay</a>. <a href="http://github.com/ptarjan/stdicon/tree/master">Open Source</a>.
     </div>
 </div>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+<script>
+$(function() {
+    var height = 0;
+    $("#lists").children().each(function() {
+        var h = $(this).height();
+        if (height < h)
+            height = h;
+    });
+    
+    $("#lists").children().each(function() {
+        $(this).height(height);
+    });
+})
+</script>
 {% endblock %}
