@@ -31,4 +31,20 @@ a {
     </div>
 {% endfor %}
 </div>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+<script>
+$(function() {
+    var height = 0;
+    $("img").each(function() {
+        var h = $(this).height();
+        if (height < h)
+            height = h;
+    });
+    
+    $("img").each(function() {
+        $(this).height(height);
+    });
+})
+</script>
 {% endblock %}
