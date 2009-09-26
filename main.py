@@ -212,9 +212,26 @@ class IconHandler(webapp.RequestHandler):
                 h = boom[0]
                 w = boom[1]
 
-            w = min(int(w), 256)
-            h = min(int(h), 256)
-            
+            w = min(int(w), 512)
+            h = min(int(h), 512)
+           
+#            from StringIO import StringIO
+#            from google.appengine.api.images.images_stub import Image
+#            size = (w, h)
+#            image = StringIO(contents)
+#            image = Image.open(image)
+#            image = image.convert("RGBA")
+#            image = image.resize(size, Image.ANTIALIAS)
+#
+#            background = Image.new('RGBA', size, (255, 255, 255, 0))
+#            background.paste(image,
+#                ((size[0] - image.size[0]) / 2, (size[1] - image.size[1]) / 2))
+#            image = background
+#
+#            buf = StringIO()
+#            image.save(buf, format='PNG')
+#            image = buf.getvalue()
+
             try :
                 image = images.resize(contents, w, h)
             except ValueError, why :
@@ -317,11 +334,13 @@ class CreateIconZipHandler(webapp.RequestHandler):
         setname = self.request.get("set")
 
         for name in zip.namelist() :
-            match = re.search("-mime-(.*?)[.]", name)
+            match = re.search("-mime-(.+?)[.]", name)
             if not match : continue
 
             mimetype = match.groups()[0].replace("-", "/", 1)
-            mimetype = mimetype.replace("x/directory-", "x-directory/") # i guess x-directory is a valid prefix for a mimetype
+
+            match = re.match("x/(.+?)-(.*)", mimetype)
+            mimetype = "x-%s/%s" % (match.groups())
             contents = zip.read(name)
             
             icon = Icon.create(mimetype, contents, setname)
