@@ -24,11 +24,12 @@ a {
 {% endif %}</h1>
 <div class="icons">
 {% for icon in icons %}
-    <div title="{{ icon.mimetype }}">
-        <a href="/{{icon.set.name}}/{{icon.mimetype}}">
+    <a href="/{{icon.set.name}}/{{icon.mimetype}}">
+        <div title="{{ icon.mimetype }}">
             <img src="/{{icon.set.name}}/{{icon.mimetype}}" />
-            <br/>{{ icon.mimetype|elipses:"5,10" }}</a>
-    </div>
+            <br/>{{ icon.mimetype|elipses:"5,10" }}
+        </div>
+    </a>
 {% endfor %}
 </div>
 
