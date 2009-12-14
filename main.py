@@ -1,8 +1,9 @@
 # Paul Tarjan : http://paulisageek.com
 
-import os
-import mimetypes
+import hashlib
 import logging
+import mimetypes
+import os
 import simplejson
 import random
 from urllib import unquote
@@ -263,6 +264,15 @@ class IconHandler(webapp.RequestHandler):
         then = timedelta(hours=hours) + datetime.now()
         self.response.headers['Expires'] = then.strftime("%a, %d %b %Y %H:%M:%S GMT")
         self.response.headers['Cache-Control'] = 'max-age=%d' % int(3600 * hours)
+
+        checksum = hashlib.md5(image).hexdigest()
+        self.response.headers['ETag'] = checksum
+        try:
+            if self.request.headers['If-None-Match'] == checksum :
+                self.response.set_status(304)
+                return
+        except KeyError:
+            pass
         self.response.out.write(image)
         return True
 
