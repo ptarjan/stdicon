@@ -42,6 +42,9 @@ $(function() {
         if (height < h)
             height = h;
     });
+    if (!height) {
+      return;
+    }
     
     $("img").each(function() {
         $(this).height(height);
