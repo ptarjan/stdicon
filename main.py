@@ -4,22 +4,19 @@ import hashlib
 import logging
 import mimetypes
 import os
-import simplejson
 import random
 from urllib import unquote
 
 import wsgiref.handlers
-
-from google.appengine.api import users
+from datetime import timedelta, datetime
+from django.utils import simplejson
 from google.appengine.api import images
 from google.appengine.api import memcache
 from google.appengine.api import urlfetch
-
+from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
-
-from datetime import timedelta, datetime
 
 mimetypes.knownfiles.append("mime.types")
 # load the mimetypes from the file (this is cached between requests)
@@ -89,7 +86,8 @@ class IndexHandler(webapp.RequestHandler):
                     icon = query[ind]
                 iconset = {"set": set, "icon": icon}
                 if icon:
-                    memcache.set("iconexample_set_" + set.name, iconset, 60 * 60 * 24) # 1 day
+                    # 1 day
+                    memcache.set("iconexample_set_" + set.name, iconset, 60 * 60 * 24)
 
             iconsets.append(iconset)
 
@@ -137,7 +135,8 @@ class IconHandler(webapp.RequestHandler):
                 if not image:
                     image = urlfetch.fetch(default).content
                     try:
-                        memcache.set("default_image_" + default, image, 60 * 60) # 1 hour
+                        # 1 hour
+                        memcache.set("default_image_" + default, image, 60 * 60)
                     except Exception, why:
                         logging.error(why)
 
@@ -249,7 +248,8 @@ class IconHandler(webapp.RequestHandler):
 
             if cache:
                 try:
-                    memcache.set("image_" + self.request.url, image, 60 * 60 * 24) # 1 day
+                    # 1 day
+                    memcache.set("image_" + self.request.url, image, 60 * 60 * 24)
                 except Exception, why:
                     logging.error(why)
 
@@ -268,7 +268,7 @@ class IconHandler(webapp.RequestHandler):
         checksum = hashlib.md5(image).hexdigest()
         self.response.headers['ETag'] = checksum
         try:
-            if self.request.headers['If-None-Match'] == checksum :
+            if self.request.headers['If-None-Match'] == checksum:
                 self.response.set_status(304)
                 return
         except KeyError:
